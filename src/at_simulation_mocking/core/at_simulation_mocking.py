@@ -20,22 +20,22 @@ class ATSimulationMocking(ATComponent):
         self.last_tacts = {}
 
     @authorized_method
-    def create_sm_run(self, sm_run: Union[TactsDict, str], from_at4_xml_if_str: bool = True, auth_token: str = None) -> bool:
+    def create_sm(self, sm: Union[TactsDict, str], from_at4_xml_if_str: bool = True, auth_token: str = None) -> bool:
         auth_token = auth_token or 'default'
-        if isinstance(sm_run, str):
+        if isinstance(sm, str):
             if from_at4_xml_if_str:
-                parsed = fromstring(sm_run)
+                parsed = fromstring(sm)
                 sm_run_instance = SMRun.from_at4_xml(parsed)
             else:
-                parsed = json.loads(sm_run)
+                parsed = json.loads(sm)
                 sm_run_instance = SMRun.from_tacts_dict(parsed)
         else:
-            sm_run_instance = SMRun.from_tacts_dict(sm_run)
+            sm_run_instance = SMRun.from_tacts_dict(sm)
         self.sm_runs[auth_token] = sm_run_instance
         return True
     
     @authorized_method
-    def has_sm_run(self, auth_token: str = None) -> bool:
+    def has_sm(self, auth_token: str = None) -> bool:
         try:
             self.get_sm_run(auth_token)
             return True
