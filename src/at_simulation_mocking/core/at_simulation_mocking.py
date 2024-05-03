@@ -31,6 +31,12 @@ class ATSimulationMocking(ATComponent):
         auth_token = auth_token or 'default'
         sm_run_config = config.items.get('sm_run')
         sm_run = sm_run_config.data
+        if isinstance(sm_run, str):
+            at4_xml = config.items.get('at4_xml')
+            if at4_xml is not None and at4_xml.data:
+                sm_run = fromstring(sm_run)
+            else:
+                sm_run = json.loads(sm_run)
         mode = SM_LOAD_MODE.AT4_XML if isinstance(sm_run, Element) else SM_LOAD_MODE.JSON
         return self.create_sm_run(sm_run, mode=mode, auth_token=auth_token)
 
