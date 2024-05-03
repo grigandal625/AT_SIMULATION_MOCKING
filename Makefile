@@ -19,9 +19,9 @@ build: clean
 	pip install wheel
 	python setup.py bdist_wheel
 stable:
-	cp dist/at_simulation_mocker-*.*-py3-none-any.whl dist/at_simulation_mocker-stable-py3-none-any.whl
+	cp dist/at_simulation_mocking-*.*-py3-none-any.whl dist/at_simulation_mocking-stable-py3-none-any.whl
 latest:
-	cp dist/at_simulation_mocker-*.*-py3-none-any.whl dist/at_simulation_mocker-latest-py3-none-any.whl
+	cp dist/at_simulation_mocking-*.*-py3-none-any.whl dist/at_simulation_mocking-latest-py3-none-any.whl
 requirements:
 	pip freeze > requirements.txt
 # sed -i 1d requirements.txt

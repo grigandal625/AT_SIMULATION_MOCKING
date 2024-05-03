@@ -28,8 +28,8 @@ with pathlib.Path('requirements.txt').open() as requirements_txt:
 
 if __name__ == '__main__':
     setup(
-        name='at-simulation-mocker',
-        version=os.getenv('PACKAGE_VERSION', '0.0.dev0'),
+        name='at-simulation-mocking',
+        version=os.getenv('PACKAGE_VERSION', '0.0.dev1'),
         packages=find_packages(where='src'),
         package_dir={'': 'src'},
         description='AT-TECHNOLOGY Simulation model mocker.',

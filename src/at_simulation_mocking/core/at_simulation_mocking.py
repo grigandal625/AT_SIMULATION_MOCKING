@@ -1,3 +1,6 @@
+from uuid import UUID
+from aio_pika import IncomingMessage
+from at_config.core.at_config_handler import ATComponentConfig
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
@@ -5,9 +8,14 @@ from at_simulation_mocking.core.at_rao_structs import SMRun, TactsDict, Resource
 from typing import Dict, Union, List
 import logging
 import json
-from xml.etree.ElementTree import fromstring
+from xml.etree.ElementTree import fromstring, Element
 
 logger = logging.getLogger(__name__)
+
+
+class SM_LOAD_MODE:
+    JSON = 'json'
+    AT4_XML = 'at4_xml'
 
 
 class ATSimulationMocking(ATComponent):
@@ -19,23 +27,33 @@ class ATSimulationMocking(ATComponent):
         self.sm_runs = {}
         self.last_tacts = {}
 
-    @authorized_method
-    def create_sm(self, sm: Union[TactsDict, str], from_at4_xml_if_str: bool = True, auth_token: str = None) -> bool:
+    async def perform_configurate(self, config: ATComponentConfig, auth_token: str = None, *args, **kwargs) -> bool:
         auth_token = auth_token or 'default'
-        if isinstance(sm, str):
-            if from_at4_xml_if_str:
-                parsed = fromstring(sm)
-                sm_run_instance = SMRun.from_at4_xml(parsed)
-            else:
-                parsed = json.loads(sm)
-                sm_run_instance = SMRun.from_tacts_dict(parsed)
+        sm_run_config = config.items.get('sm_run')
+        sm_run = sm_run_config.data
+        mode = SM_LOAD_MODE.AT4_XML if isinstance(sm_run, Element) else SM_LOAD_MODE.JSON
+        return self.create_sm_run(sm_run, mode=mode, auth_token=auth_token)
+
+    def create_sm_run(self, sm_run: Union[TactsDict, str, Element], mode: str = None, auth_token: str = None) -> bool:
+        auth_token = auth_token or 'default'
+        
+        if mode == SM_LOAD_MODE.AT4_XML:
+            if isinstance(sm_run, dict):
+                raise ValueError('sm_run must be xml element or str but got dict')
+            parsed = sm_run
+            if isinstance(sm_run, str):
+                parsed = fromstring(sm_run)
+            sm_run_instance = SMRun.from_at4_xml(parsed)
         else:
-            sm_run_instance = SMRun.from_tacts_dict(sm)
+            parsed = sm_run
+            if isinstance(sm_run, str):
+                parsed = json.loads(sm_run)
+            sm_run_instance = SMRun.from_tacts_dict(parsed)
+        
         self.sm_runs[auth_token] = sm_run_instance
         return True
     
-    @authorized_method
-    def has_sm(self, auth_token: str = None) -> bool:
+    async def check_configured(self, *args, message: Dict, sender: str, message_id: str | UUID, reciever: str, msg: IncomingMessage, auth_token: str = None, **kwargs) -> bool:
         try:
             self.get_sm_run(auth_token)
             return True
@@ -58,10 +76,9 @@ class ATSimulationMocking(ATComponent):
         return last_tact
     
     @authorized_method
-    def reset_tact(self, auth_token: str = None) -> bool:
+    def reset(self, auth_token: str = None) -> bool:
         auth_token = auth_token or 'default'
         self.last_tacts[auth_token] = 0
-
 
     @authorized_method
     def process_tact(self, recycle: bool = True, auth_token: str = None, ) -> List[ResourceMPDict]:
