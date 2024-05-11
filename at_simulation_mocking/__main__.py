@@ -3,6 +3,7 @@ from at_queue.core.session import ConnectionParameters
 from at_simulation_mocking.core.at_simulation_mocking import ATSimulationMocking
 import asyncio
 import logging
+import os
 
 parser = argparse.ArgumentParser(
     prog='at-temporal-solver',
@@ -21,6 +22,13 @@ async def main(**connection_kwargs):
     mocker = ATSimulationMocking(connection_parameters=connection_parameters)
     await mocker.initialize()
     await mocker.register()
+
+    if not os.path.exists('/var/run/at_simulation_mocking/'):
+        os.makedirs('/var/run/at_simulation_mocking/')
+
+    with open('/var/run/at_simulation_mocking/pidfile.pid', 'w') as f:
+        f.write(str(os.getpid()))
+
     await mocker.start()
 
 
