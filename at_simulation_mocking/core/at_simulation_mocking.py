@@ -4,7 +4,7 @@ from at_config.core.at_config_handler import ATComponentConfig
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import authorized_method
-from at_simulation_mocking.core.at_rao_structs import SMRun, TactsDict, ResourceMPDict
+from at_simulation_mocking.core.at_rao_structs import SMRun, TactDict, ResourceMPDict
 from typing import Dict, Union, List
 import logging
 import json
@@ -40,7 +40,7 @@ class ATSimulationMocking(ATComponent):
         mode = SM_LOAD_MODE.AT4_XML if isinstance(sm_run, Element) else SM_LOAD_MODE.JSON
         return self.create_sm_run(sm_run, mode=mode, auth_token=auth_token)
 
-    def create_sm_run(self, sm_run: Union[TactsDict, str, Element], mode: str = None, auth_token: str = None) -> bool:
+    def create_sm_run(self, sm_run: Union[TactDict, str, Element], mode: str = None, auth_token: str = None) -> bool:
         auth_token = auth_token or 'default'
         
         if mode == SM_LOAD_MODE.AT4_XML:
@@ -87,7 +87,7 @@ class ATSimulationMocking(ATComponent):
         self.last_tacts[auth_token] = 0
 
     @authorized_method
-    def process_tact(self, recycle: bool = True, auth_token: str = None, ) -> List[ResourceMPDict]:
+    def run_tick(self, recycle: bool = True, auth_token: str = None, **kwargs) -> List[ResourceMPDict]:
         sm_run = self.get_sm_run(auth_token)
         new_tact = self.get_last_tact(auth_token) + 1
         if new_tact > sm_run.max_tact:
@@ -96,6 +96,6 @@ class ATSimulationMocking(ATComponent):
         
         sm_tact = new_tact % (sm_run.max_tact + 1)
         self.last_tacts[auth_token] = new_tact
-        return sm_run.__dict__["tacts"][sm_tact]
+        return sm_run.__dict__[sm_tact]
 
     

@@ -21,30 +21,29 @@ class ResourceParameterDict(TypedDict):
 
 
 class ResourceDict(TypedDict):
-    name: str
+    resource_name: str
     parameters: List[ResourceParameterDict]
 
 
 class ResourceMPDict(TypedDict):
-    name: str
-    parameters: Dict[str, Union[str, int, float, bool, None]]
+    resource_name: str
 
 
-class TactsDict(TypedDict):
-    tacts: Dict[int, List[ResourceMPDict]]
+class TactDict(TypedDict):
+    resources: List[ResourceMPDict]
 
 def resource_to_mapped(resource: Resource) -> ResourceMPDict:
     return {
-        'name': resource.name,
-        'parameters': {
-            parameter.name: parameter.value for parameter in resource.parameters
-        }
+        'resource_name': resource.name,
+        **{parameter.name: parameter.value for parameter in resource.parameters}
+        
     }
 
 def resource_from_mapped(data: ResourceMPDict) -> Resource:
+    name=data.pop('resource_name')
     return Resource(
-        name=data['name'],
-        parameters=[ResourceParameter(name=p_n, value=p_v) for p_n, p_v in data['parameters'].items()]
+        name=name,
+        parameters=[ResourceParameter(name=p_n, value=p_v) for p_n, p_v in data.items()]
     )
 
 class SMRun:
@@ -54,20 +53,23 @@ class SMRun:
         self.tacts = tacts
 
     @property
-    def __dict__(self) -> TactsDict:
-        return {
-            'tacts': {
-                tact: [resource_to_mapped(resource) for resource in tact_resources]
-                for tact, tact_resources in self.tacts.items()
-            }
-        }
+    def __dict__(self) -> List[TactDict]:
+        return [
+            {
+                'resources': [
+                    resource_to_mapped(resource) for resource in tact_resources
+                ]
+            } 
+            for tact_resources in self.tacts.values()
+        ]
+               
 
     @staticmethod
-    def from_tacts_dict(data: TactsDict) -> 'SMRun':
+    def from_tacts_dict(data: List[TactDict]) -> 'SMRun':
         return SMRun(
             tacts={
-                tact: [resource_from_mapped(r) for r in t_data]
-                for tact, t_data in data["tacts"].items()
+                i: [resource_from_mapped(r) for r in tact.get('resources')]
+                for i, tact in enumerate(data)
             }
         )
 
