@@ -6,8 +6,8 @@ import logging
 import os
 
 parser = argparse.ArgumentParser(
-    prog='at-temporal-solver',
-    description='General working memory for AT-TECHNOLOGY components')
+    prog='at-simulation-mocking',
+    description='Mocking component to use istead of real simulation subsystem')
 
 parser.add_argument('-u', '--url', help="RabbitMQ URL to connect", required=False, default=None)
 parser.add_argument('-H', '--host', help="RabbitMQ host to connect", required=False, default="localhost")
