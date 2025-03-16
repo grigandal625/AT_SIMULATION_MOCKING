@@ -18,22 +18,22 @@ python -m at_simulation_mocking
 
 ## Параметры запуска
 
-1. **`-u`, `--url`** - URL для подключения к RabbitMQ.  
+1. **`-u`, `--url`** - URL для подключения к RabbitMQ.
    Значение по умолчанию: `None`
 
-2. **`-H`, `--host`** - Хост для подключения к RabbitMQ.  
+2. **`-H`, `--host`** - Хост для подключения к RabbitMQ.
    Значение по умолчанию: `"localhost"`
 
-3. **`-p`, `--port`** - Порт для подключения к RabbitMQ.  
+3. **`-p`, `--port`** - Порт для подключения к RabbitMQ.
    Значение по умолчанию: `5672`
 
-4. **`-L`, `--login`, `-U`, `--user`, `--user-name`, `--username`, `--user_name`** - Логин для подключения к RabbitMQ.  
+4. **`-L`, `--login`, `-U`, `--user`, `--user-name`, `--username`, `--user_name`** - Логин для подключения к RabbitMQ.
    Значение по умолчанию: `"guest"`
 
-5. **`-P`, `--password`** - Пароль для подключения к RabbitMQ.  
+5. **`-P`, `--password`** - Пароль для подключения к RabbitMQ.
    Значение по умолчанию: `"guest"`
 
-6. **`-v`, `--virtualhost`, `--virtual-host`, `--virtual_host`** - Виртуальный хост для подключения к RabbitMQ.  
+6. **`-v`, `--virtualhost`, `--virtual-host`, `--virtual_host`** - Виртуальный хост для подключения к RabbitMQ.
    Значение по умолчанию: `"/"`
 
 
@@ -79,7 +79,7 @@ class ATJoint(ATComponent):
     # ...
 
     def process_tact(self, auth_token):
-        
+
         # получаем параметры ресурсов для очередного такта
         tact = await self.exec_external_method(
             'ATSimulationMocking',
