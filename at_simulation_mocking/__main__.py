@@ -46,11 +46,15 @@ async def main(**connection_kwargs):
     await mocker.initialize()
     await mocker.register()
 
-    if not os.path.exists("/var/run/at_simulation_mocking/"):
-        os.makedirs("/var/run/at_simulation_mocking/")
+    try:
 
-    with open("/var/run/at_simulation_mocking/pidfile.pid", "w") as f:
-        f.write(str(os.getpid()))
+        if not os.path.exists("/var/run/at_simulation_mocking/"):
+            os.makedirs("/var/run/at_simulation_mocking/")
+
+        with open("/var/run/at_simulation_mocking/pidfile.pid", "w") as f:
+            f.write(str(os.getpid()))
+    except PermissionError:
+        pass
 
     await mocker.start()
 
