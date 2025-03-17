@@ -158,7 +158,7 @@ class ATSimulationMocking(ATComponent):
         return process
 
     @authorized_method
-    def run_tick(self, process_id: str, recycle: bool = True, auth_token: str = None, **kwargs) -> List[ResourceMPDict]:
+    def run_tick(self, process_id: str, auth_token: str = None, **kwargs) -> List[ResourceMPDict]:
         sm_run = self.get_sm_run(auth_token)
         process = self.get_process_mocking(auth_token, process_id)
         if process["status"] == "KILLED":
@@ -166,7 +166,7 @@ class ATSimulationMocking(ATComponent):
         current_tact = process["current_tick"]
         new_tact = current_tact + 1
         if new_tact > sm_run.max_tact:
-            if not recycle:
+            if not kwargs.get('recycle', True):
                 raise ValueError(f"Trying to process tact {new_tact} but max tact is {sm_run.max_tact}")
 
         sm_tact = new_tact % (sm_run.max_tact + 1)
