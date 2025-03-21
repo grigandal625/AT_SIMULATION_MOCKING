@@ -47,7 +47,6 @@ async def main(**connection_kwargs):
     await mocker.register()
 
     try:
-
         if not os.path.exists("/var/run/at_simulation_mocking/"):
             os.makedirs("/var/run/at_simulation_mocking/")
 

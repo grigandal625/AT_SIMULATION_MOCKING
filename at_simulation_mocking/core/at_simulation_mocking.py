@@ -79,7 +79,9 @@ class ATSimulationMocking(ATComponent):
         mode = SM_LOAD_MODE.AT4_XML if isinstance(sm_run, Element) else SM_LOAD_MODE.JSON
         return await self.create_sm_run(sm_run, mode=mode, auth_token=auth_token)
 
-    async def create_sm_run(self, sm_run: Union[TactDict, str, Element], mode: str = None, auth_token: str = None) -> bool:
+    async def create_sm_run(
+        self, sm_run: Union[TactDict, str, Element], mode: str = None, auth_token: str = None
+    ) -> bool:
         auth_token = auth_token or "default"
         auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
 
@@ -171,7 +173,7 @@ class ATSimulationMocking(ATComponent):
         current_tact = process["current_tick"]
         new_tact = current_tact + 1
         if new_tact > sm_run.max_tact:
-            if not kwargs.get('recycle', True):
+            if not kwargs.get("recycle", True):
                 raise ValueError(f"Trying to process tact {new_tact} but max tact is {sm_run.max_tact}")
 
         sm_tact = new_tact % (sm_run.max_tact + 1)

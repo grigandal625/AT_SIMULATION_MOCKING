@@ -13,6 +13,7 @@ at-queue = {git = "https://github.com/grigandal625/AT_QUEUE.git", rev = "master"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.0"
 pre-commit = "^4.1.0"
+pytest-asyncio = "^0.25.3"
 
 [build-system]
 requires = ["poetry-core"]
