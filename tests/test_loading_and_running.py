@@ -17,9 +17,9 @@ def xml_sm_run():
     return fromstring(open("./tests/fixtures/sm_run.xml").read())
 
 
-def test_load_and_run_from_xml(xml_sm_run):
+async def test_load_and_run_from_xml(xml_sm_run):
     mocking = ATSimulationMocking(connection_parameters=ConnectionParameters())
-    mocking.create_sm_run(xml_sm_run, mode="at4_xml")
+    await mocking.create_sm_run(xml_sm_run, mode="at4_xml")
 
     processes = mocking.get_processes(auth_token="default")
     assert isinstance(processes, list)
@@ -49,7 +49,7 @@ def test_load_and_run_from_xml(xml_sm_run):
     assert process["status"] == "KILLED"
 
 
-def test_load_and_run_from_json(json_sm_run):
+async def test_load_and_run_from_json(json_sm_run):
     mocking = ATSimulationMocking(connection_parameters=ConnectionParameters())
     mocking.create_sm_run(json_sm_run, mode="json")
 

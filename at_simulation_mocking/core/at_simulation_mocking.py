@@ -77,10 +77,11 @@ class ATSimulationMocking(ATComponent):
             else:
                 sm_run = json.loads(sm_run)
         mode = SM_LOAD_MODE.AT4_XML if isinstance(sm_run, Element) else SM_LOAD_MODE.JSON
-        return self.create_sm_run(sm_run, mode=mode, auth_token=auth_token)
+        return await self.create_sm_run(sm_run, mode=mode, auth_token=auth_token)
 
-    def create_sm_run(self, sm_run: Union[TactDict, str, Element], mode: str = None, auth_token: str = None) -> bool:
+    async def create_sm_run(self, sm_run: Union[TactDict, str, Element], mode: str = None, auth_token: str = None) -> bool:
         auth_token = auth_token or "default"
+        auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
 
         if mode == SM_LOAD_MODE.AT4_XML:
             if isinstance(sm_run, dict):
@@ -95,7 +96,7 @@ class ATSimulationMocking(ATComponent):
                 parsed = json.loads(sm_run)
             sm_run_instance = SMRun.from_tacts_dict(parsed)
 
-        self.sm_runs[auth_token] = sm_run_instance
+        self.sm_runs[auth_token_or_user_id] = sm_run_instance
         return True
 
     async def check_configured(
@@ -109,25 +110,26 @@ class ATSimulationMocking(ATComponent):
         auth_token: str = None,
         **kwargs,
     ) -> bool:
+        auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
         try:
-            self.get_sm_run(auth_token)
+            self.get_sm_run(auth_token_or_user_id=auth_token_or_user_id)
             return True
         except ValueError:
             return False
 
-    def get_sm_run(self, auth_token) -> SMRun:
-        auth_token = auth_token or "default"
-        sm_run = self.sm_runs.get(auth_token)
+    def get_sm_run(self, auth_token_or_user_id) -> SMRun:
+        auth_token_or_user_id = auth_token_or_user_id or "default"
+        sm_run = self.sm_runs.get(auth_token_or_user_id)
         if sm_run is None:
-            raise ValueError("Simulation model run for token '%s' is not created" % auth_token)
+            raise ValueError("Simulation model run for provided token or user id is not created")
         return sm_run
 
-    def get_process_mocking(self, auth_token, process_id) -> ProcessDict:
-        auth_token = auth_token or "default"
-        process_mockings = self.process_mockings.get(auth_token, [])
+    def get_process_mocking(self, auth_token_or_user_id, process_id) -> ProcessDict:
+        auth_token_or_user_id = auth_token_or_user_id or "default"
+        process_mockings = self.process_mockings.get(auth_token_or_user_id, [])
         process_mocking = next(iter([p for p in process_mockings if p["id"] == process_id]), None)
         if process_mocking is None:
-            raise ValueError(f"No processes created for provided token with id {process_id}")
+            raise ValueError(f"No processes created for provided token or user id with id {process_id}")
         return process_mocking
 
     @authorized_method
@@ -135,9 +137,10 @@ class ATSimulationMocking(ATComponent):
         return self.translated_files
 
     @authorized_method
-    def create_process(self, auth_token: str = None, **kwargs) -> ProcessDict:
+    async def create_process(self, auth_token: str = None, **kwargs) -> ProcessDict:
         auth_token = auth_token or "default"
-        processes = self.process_mockings.get(auth_token, [])
+        auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
+        processes = self.process_mockings.get(auth_token_or_user_id, [])
         processes.append(
             {
                 "id": str(uuid4()),
@@ -147,19 +150,21 @@ class ATSimulationMocking(ATComponent):
                 "current_tick": 0,
             }
         )
-        self.process_mockings[auth_token] = processes
+        self.process_mockings[auth_token_or_user_id] = processes
         return processes[-1]
 
     @authorized_method
-    def kill_process(self, process_id: str, auth_token: str = None, **kwargs) -> None:
+    async def kill_process(self, process_id: str, auth_token: str = None, **kwargs) -> None:
         auth_token = auth_token or "default"
-        process = self.get_process_mocking(auth_token, process_id)
+        auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
+        process = self.get_process_mocking(auth_token_or_user_id=auth_token_or_user_id, process_id=process_id)
         process["status"] = "KILLED"
         return process
 
     @authorized_method
-    def run_tick(self, process_id: str, auth_token: str = None, **kwargs) -> List[ResourceMPDict]:
-        sm_run = self.get_sm_run(auth_token)
+    async def run_tick(self, process_id: str, auth_token: str = None, **kwargs) -> List[ResourceMPDict]:
+        auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
+        sm_run = self.get_sm_run(auth_token_or_user_id=auth_token_or_user_id)
         process = self.get_process_mocking(auth_token, process_id)
         if process["status"] == "KILLED":
             raise ValueError("Can not run tick of killed process")
@@ -174,6 +179,7 @@ class ATSimulationMocking(ATComponent):
         return sm_run.__dict__[sm_tact]
 
     @authorized_method
-    def get_processes(self, auth_token: str = None, **kwargs) -> List[ProcessDict]:
+    async def get_processes(self, auth_token: str = None, **kwargs) -> List[ProcessDict]:
         auth_token = auth_token or "default"
-        return self.process_mockings.get(auth_token, [])
+        auth_token_or_user_id = await self.get_user_id_or_token(auth_token, raize_on_failed=False)
+        return self.process_mockings.get(auth_token_or_user_id, [])
